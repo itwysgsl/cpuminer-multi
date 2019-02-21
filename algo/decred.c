@@ -6,34 +6,34 @@
 #include <stdint.h>
 #include <memory.h>
 
-static __thread sph_blake256_context blake_mid;
+static __thread sph_blake512_context blake_mid;
 static __thread bool ctx_midstate_done = false;
 
 void decred_hash(void *state, const void *input)
 {
 	#define MIDSTATE_LEN 128
-	sph_blake256_context ctx;
+	sph_blake512_context ctx;
 
 	uint8_t *ending = (uint8_t*) input;
 	ending += MIDSTATE_LEN;
 
 	if (!ctx_midstate_done) {
-		sph_blake256_init(&blake_mid);
-		sph_blake256(&blake_mid, input, MIDSTATE_LEN);
+		sph_blake512_init(&blake_mid);
+		sph_blake512(&blake_mid, input, MIDSTATE_LEN);
 		ctx_midstate_done = true;
 	}
 	memcpy(&ctx, &blake_mid, sizeof(blake_mid));
 
-	sph_blake256(&ctx, ending, (180 - MIDSTATE_LEN));
-	sph_blake256_close(&ctx, state);
+	sph_blake512(&ctx, ending, (180 - MIDSTATE_LEN));
+	sph_blake512_close(&ctx, state);
 }
 
 void decred_hash_simple(void *state, const void *input)
 {
-	sph_blake256_context ctx;
-	sph_blake256_init(&ctx);
-	sph_blake256(&ctx, input, 180);
-	sph_blake256_close(&ctx, state);
+	sph_blake512_context ctx;
+	sph_blake512_init(&ctx);
+	sph_blake512(&ctx, input, 180);
+	sph_blake512_close(&ctx, state);
 }
 
 int scanhash_decred(int thr_id, struct work *work, uint32_t max_nonce, uint64_t *hashes_done)

@@ -2371,6 +2371,9 @@ void print_hash_tests(void)
 	groestlhash(&hash[0], &buf[0]);
 	printpfx("groestl", hash);
 
+	balloon_hash(&hash[0], &buf[0]);
+	printpfx("balloon", hash);
+
 	heavyhash((uint8_t*) &hash[0], (uint8_t*) &buf[0], 32);
 	printpfx("heavy", hash);
 

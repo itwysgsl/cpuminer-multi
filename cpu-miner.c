@@ -98,6 +98,7 @@ enum algos {
 	ALGO_DROP,        /* Dropcoin */
 	ALGO_FRESH,       /* Fresh */
 	ALGO_GROESTL,     /* Groestl */
+	ALGO_BALLOON,     /* Balloon */
 	ALGO_JHA,
 	ALGO_LBRY,        /* Lbry Sha Ripemd */
 	ALGO_LUFFA,       /* Luffa (Joincoin, Doom) */
@@ -165,6 +166,7 @@ static const char *algo_names[] = {
 	"drop",
 	"fresh",
 	"groestl",
+	"balloon",
 	"jha",
 	"lbry",
 	"luffa",
@@ -668,9 +670,9 @@ static bool work_decode(const json_t *val, struct work *work)
 			char netinfo[64] = { 0 };
 			if (opt_showdiff && net_diff > 0.) {
 				if (net_diff != work->targetdiff)
-					sprintf(netinfo, ", diff %.3f, target %.1f", net_diff, work->targetdiff);
+					sprintf(netinfo, ", diff %.16g, target %.1f", net_diff, work->targetdiff);
 				else
-					sprintf(netinfo, ", diff %.3f", net_diff);
+					sprintf(netinfo, ", diff %.16g", net_diff);
 			}
 			applog(LOG_BLUE, "%s block %d%s",
 				algo_names[opt_algo], work->height, netinfo);
@@ -1853,6 +1855,7 @@ static void stratum_gen_work(struct stratum_ctx *sctx, struct work *work)
 			case ALGO_FRESH:
 			case ALGO_DMD_GR:
 			case ALGO_GROESTL:
+			// case ALGO_BALLOON:
 			case ALGO_KECCAKC:
 			case ALGO_LBRY:
 			case ALGO_LYRA2REV2:
@@ -2183,6 +2186,7 @@ static void *miner_thread(void *userdata)
 			case ALGO_DROP:
 			case ALGO_PLUCK:
 			case ALGO_YESCRYPT:
+			case ALGO_BALLOON:
 				max64 = 0x1ff;
 				break;
 			case ALGO_ALLIUM:
@@ -2300,6 +2304,9 @@ static void *miner_thread(void *userdata)
 		case ALGO_DMD_GR:
 		case ALGO_GROESTL:
 			rc = scanhash_groestl(thr_id, &work, max_nonce, &hashes_done);
+			break;
+		case ALGO_BALLOON:
+			rc = scanhash_balloon(thr_id, &work, max_nonce, &hashes_done);
 			break;
 		case ALGO_KECCAK:
 		case ALGO_KECCAKC:

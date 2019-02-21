@@ -70,6 +70,7 @@ cpuminer_SOURCES = \
   algo/drop.c \
   algo/fresh.c \
   algo/groestl.c \
+  algo/balloon.c \
   algo/heavy.c \
   algo/ink.c \
   algo/jha.c \
