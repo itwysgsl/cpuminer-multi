@@ -5,8 +5,7 @@
 #include <stdint.h>
 #include <string.h>
 
-// #include "sha3/sph_groestl.h"
-#include "sha3/sph_shabal.h"
+#include "sha3/sph_groestl.h"
 
 // Convert uint8_t to uint64_t
 uint64_t u8tou64(uint8_t const *u8){
@@ -28,11 +27,11 @@ void *block_index(uint8_t *blocks, size_t i) {
 
 void balloon_hash(void *output, const void *input)
 {
-	const uint64_t s_cost = 64;
+	const uint64_t s_cost = 16;
 	const uint64_t t_cost = 2;
 	const int delta = 3;
 	
-	sph_shabal512_context context;
+	sph_groestl512_context context;
 	uint8_t blocks[s_cost * 64];
 	uint64_t cnt = 0;
 
@@ -41,17 +40,17 @@ void balloon_hash(void *output, const void *input)
 	getsalt(input, salt);
 	
 	// Step 1: Expand input into buffer
-	sph_shabal512_init(&context);
-	sph_shabal512(&context, (uint8_t *)&cnt, sizeof((uint8_t *)&cnt));
-	sph_shabal512(&context, input, 80);
-	sph_shabal512(&context, salt, slength);
-	sph_shabal512_close(&context, block_index(blocks, 0));
+	sph_groestl512_init(&context);
+	sph_groestl512(&context, (uint8_t *)&cnt, sizeof((uint8_t *)&cnt));
+	sph_groestl512(&context, input, 80);
+	sph_groestl512(&context, salt, slength);
+	sph_groestl512_close(&context, block_index(blocks, 0));
 	cnt++;
 
 	for (int m = 1; m < s_cost; m++) {
-		sph_shabal512(&context, (uint8_t *)&cnt, sizeof((uint8_t *)&cnt));
-		sph_shabal512(&context, block_index(blocks, m - 1), 64);
-		sph_shabal512_close(&context, block_index(blocks, m));
+		sph_groestl512(&context, (uint8_t *)&cnt, sizeof((uint8_t *)&cnt));
+		sph_groestl512(&context, block_index(blocks, m - 1), 64);
+		sph_groestl512_close(&context, block_index(blocks, m));
 		cnt++;
 	}
 
@@ -59,28 +58,28 @@ void balloon_hash(void *output, const void *input)
 	for (uint64_t t = 0; t < t_cost; t++) {
 		for (uint64_t m = 0; m < s_cost; m++) {
 			// Step 2a: Hash last and current blocks
-			sph_shabal512(&context, (uint8_t *)&cnt, sizeof((uint8_t *)&cnt));
-			sph_shabal512(&context, block_index(blocks, (m - 1) % s_cost), 64);
-			sph_shabal512(&context, block_index(blocks, m), 64);
-			sph_shabal512_close(&context, block_index(blocks, m));
+			sph_groestl512(&context, (uint8_t *)&cnt, sizeof((uint8_t *)&cnt));
+			sph_groestl512(&context, block_index(blocks, (m - 1) % s_cost), 64);
+			sph_groestl512(&context, block_index(blocks, m), 64);
+			sph_groestl512_close(&context, block_index(blocks, m));
 			cnt++;
 
 			for (uint64_t i = 0; i < delta; i++) {
 				// Step 2b: Hash in pseudorandomly chosen blocks
 				uint8_t index[64];
-				sph_shabal512(&context, (uint8_t *)&cnt, sizeof((uint8_t *)&cnt));
-				sph_shabal512(&context, (uint8_t *)&t, sizeof((uint8_t *)&t));
-				sph_shabal512(&context, (uint8_t *)&m, sizeof((uint8_t *)&m));
-				sph_shabal512(&context, (uint8_t *)&i, sizeof((uint8_t *)&i));
-				sph_shabal512(&context, salt, slength);
-				sph_shabal512_close(&context, index);
+				sph_groestl512(&context, (uint8_t *)&cnt, sizeof((uint8_t *)&cnt));
+				sph_groestl512(&context, (uint8_t *)&t, sizeof((uint8_t *)&t));
+				sph_groestl512(&context, (uint8_t *)&m, sizeof((uint8_t *)&m));
+				sph_groestl512(&context, (uint8_t *)&i, sizeof((uint8_t *)&i));
+				sph_groestl512(&context, salt, slength);
+				sph_groestl512_close(&context, index);
 				cnt++;
 
 				uint64_t other = u8tou64(index) % s_cost;
-				sph_shabal512(&context, (uint8_t *)&cnt, sizeof((uint8_t *)&cnt));
-				sph_shabal512(&context, block_index(blocks, m), 64);
-				sph_shabal512(&context, block_index(blocks, other), 64);
-				sph_shabal512_close(&context, block_index(blocks, m));
+				sph_groestl512(&context, (uint8_t *)&cnt, sizeof((uint8_t *)&cnt));
+				sph_groestl512(&context, block_index(blocks, m), 64);
+				sph_groestl512(&context, block_index(blocks, other), 64);
+				sph_groestl512_close(&context, block_index(blocks, m));
 				cnt++;
 			}
 		}
