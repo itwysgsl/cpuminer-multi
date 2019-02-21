@@ -28,7 +28,7 @@ void *block_index(uint8_t *blocks, size_t i) {
 
 void balloon_hash(void *output, const void *input)
 {
-	const uint64_t s_cost = 16;
+	const uint64_t s_cost = 64;
 	const uint64_t t_cost = 2;
 	const int delta = 3;
 	
